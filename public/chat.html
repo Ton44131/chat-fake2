@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat em Tempo Real</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+   <form>
+        <header>
+            <div class="topo">
+                <div class="usuario">
+                    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTFv_rUJ2Ru3GR0Jxy2YTNH_jrVzX3_HY-THQ&s" alt="">
+                    <input type="text" id="nome" placeholder="Nome de Usuário" required disabled>
+                </div>
+                <div class="botoes">
+                    <img src="https://icones.pro/wp-content/uploads/2021/02/phone-icon-bleu-1.png" alt="">
+                    <img src="https://icones.pro/wp-content/uploads/2021/02/icono-de-camara-bleue.png" alt="">
+                    <div class="pontos">
+                        <div class="ponto"></div>
+                        <div class="ponto"></div>
+                        <div class="ponto"></div>
+                    </div>
+                </div>
+            </div>
+        </header>
+    
+        <main>
+            <div class="areaMenssagem">
+                <ul id="mensagens"></ul>
+            </div>
+        </main>
+
+        <div class="areaEscrita">
+            <input type="text" id="mensagem" placeholder="Digite a sua mensagem">
+            <button>Enviar</button>
+        </div>
+   </form>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+
+        // Recupera o nome do usuário do LocalStorage
+        const nomeSalvo = sessionStorage.getItem('nomeUsuario');
+        const nomeInput = document.getElementById('nome');
+
+        if (nomeSalvo) {
+            nomeInput.value = nomeSalvo;
+            nomeInput.disabled = true;
+        } else {
+            window.location.href = 'index.html'; // Volta para o cadastro se não houver nome salvo
+        }
+
+        const mensagemInput = document.getElementById('mensagem');
+        const mensagens = document.getElementById('mensagens');
+
+        // Enviar mensagem ao servidor
+        document.querySelector('form').addEventListener('submit', event => {
+            event.preventDefault();
+
+            const nome = nomeInput.value.trim();
+            const mensagem = mensagemInput.value.trim();
+
+            if (nome && mensagem) {
+                socket.emit('chat message', { nome, mensagem });
+                mensagemInput.value = '';
+            }
+        });
+
+
+
+        // Evento para receber mensagens do servidor
+// Evento para receber mensagens do servidor
+socket.on('chat message', dados => {
+    const lista = document.createElement('li');
+
+    lista.classList.add(dados.nome === nomeInput.value ? 'minha-mensagem' : 'outra-mensagem');
+
+    lista.innerHTML = `<span class="nome-usuario">${dados.nome}</span>: ${dados.mensagem}`;
+
+    mensagens.appendChild(lista);
+    
+    // Rolagem automática para o final
+    lista.scrollIntoView({ behavior: 'smooth', block: 'end' });
+});
+
+    </script>
+</body>
+</html>
